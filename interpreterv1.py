@@ -10,10 +10,11 @@ class Interpreter(InterpreterBase):
         ast = parse_program(program) # returns list of function nodes
         self.variable_name_to_value = {} # dict to hold vars
         main_func_node = self.get_main_func_node(ast)
+        #self.output(main_func_node)
+        self.run_func(main_func_node)
 
-    
+    # returns 'main' func node from the dict input.
     def get_main_func_node(self, ast):
-        # returns 'main' func node from the dict input.
 
         # returns functions sub-dict, 'functions' is a value
         func_list = ast.dict['functions'] 
@@ -27,14 +28,30 @@ class Interpreter(InterpreterBase):
         super().error(ErrorType.NAME_ERROR, "No main() function was found")
 
 
-
+    # self explanatory
     def run_func(self, func_node):
-        raise NotImplementedError
+        # statements key for sub-dict.
+        for statement_node in func_node.dict['statements']:
+            self.run_statement(statement_node)
     
 
     def run_statement(self, statement_node):
+        if self.is_definition(statement_node):
+            self.do_definition(statement_node)
+        elif self.is_assignment(statement_node):
+            self.do_assignment(statement_node)
+        elif self.is_func_call(statement_node):
+            self.do_func_call(statement_node)
+    
+    def is_definition(self, statement_node):
+        raise NotImplementedError
+
+    def is_assignment(self, statement_node):
         raise NotImplementedError
     
+    def is_func_call(self, statement_node):
+        raise NotImplementedError
+
     def do_definition(self, statement_node):
         raise NotImplementedError
 
