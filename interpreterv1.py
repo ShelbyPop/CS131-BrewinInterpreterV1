@@ -1,3 +1,6 @@
+# Author: Shelby Falde
+# Course: CS131
+
 from brewparse import parse_program
 from intbase import *
 
@@ -52,46 +55,77 @@ class Interpreter(InterpreterBase):
         return (True if statement_node.elem_type == "fcall" else False)
 
 
-
     def do_definition(self, statement_node):
-        # just add to var name
-
+        # just add to var_name_to_value dict
         target_var_name = self.get_target_variable_name(statement_node)
         self.variable_name_to_value[target_var_name] = None
         
 
     def do_assignment(self, statement_node):
-        pass
         target_var_name = self.get_target_variable_name(statement_node)
-        # self.output(target_var_name)
         if not self.var_name_exists(target_var_name):
-            super().error(ErrorType.NAME_ERROR, "variable used and not declared", )
+            # error called for not declared var, and states it
+            super().error(ErrorType.NAME_ERROR, ("variable used and not declared: " + target_var_name), )
         source_node = self.get_expression_node(statement_node)
         resulting_value = self.evaluate_expression(source_node)
         self.variable_name_to_value[target_var_name] = resulting_value
-        
-        self.output(source_node.elem_type)
-    
+        # below actually quite important during testing
+        self.output(self.variable_name_to_value[target_var_name])
+
+    def do_func_call(self, statement_node):
+        pass
+
     def get_target_variable_name(self, statement_node):
         return statement_node.dict['name']
     def var_name_exists(self, varname):
         return True if varname in self.variable_name_to_value.keys() else False
-    
     def get_expression_node(self, statement_node):
         return statement_node.dict['expression']
     
-    def do_func_call(self, statement_node):
-        pass
+
     
+    
+
+    def is_value_node(self, expression_node):
+        return True if (expression_node.elem_type in ["int", "string"]) else False
+    def is_variable_node(self, expression_node):
+        return True if (expression_node.elem_type == "var") else False
+    def is_binary_operator(self, expression_node):
+        return True if (expression_node.elem_type in ["+", "-"]) else False
 
     def evaluate_expression(self, expression_node):
+        # self.output(expression_node)
+        if self.is_value_node(expression_node):
+            return self.get_value(expression_node)
+        elif self.is_variable_node(expression_node):
+            return self.get_value_of_variable(expression_node)
+        elif self.is_binary_operator(expression_node):
+            return self.evaluate_binary_operator(expression_node)
 
-        pass
-        # raise NotImplementedError
-    
+    def get_value(self, expression_node):
+        # Returns value assigned to key 'val'
+        return expression_node.dict['val']
+    def get_value_of_variable(self, expression_node):
+        # returns value under the variable name provided.
+        # NEED TO CATCH: if var NOT ASSIGNED VALUE YET: ex: {var x; print(x);}
+            # NOTE this is how its done in barista, feels bad if we add concatonation in future, or something else. NOT FUTURE PROOF.
+        val = self.variable_name_to_value[expression_node.dict['name']]
+        if val is None:
+            return 0
+        else:
+            return val
+
+
     # + or -
     def evaluate_binary_operator(self, expression_node):
-        raise NotImplementedError
+        # can *only* be + or -.. for now.
+        # returns arg1 - arg2 (allows for nested/recursive calls should something like 5+8-6 happen)
+        # self.output(expression_node)
+        if expression_node.elem_type == "+":
+            return (self.evaluate_expression(expression_node.dict['op1']) + self.evaluate_expression(expression_node.dict['op2']))
+        elif expression_node.elem_type == "-":
+            return (self.evaluate_expression(expression_node.dict['op1']) - self.evaluate_expression(expression_node.dict['op2']))
+
 
     # Several more functions remain
 
@@ -99,9 +133,13 @@ class Interpreter(InterpreterBase):
 program = """
             func main() {
              var x;
-             x = 5 + 6 - 7;
-             print("The sum is: ", x);
+             var y;
+             var z;
+             x = 5;
+             y = x + 1 -3;
+             z = (x + (1-3)) - y + 1;
+             print("The sum is: ", z);
             }"""
-
+# z should be '1'
 interpreter = Interpreter()
 interpreter.run(program)
