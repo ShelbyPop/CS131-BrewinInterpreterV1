@@ -73,7 +73,24 @@ class Interpreter(InterpreterBase):
         self.output(self.variable_name_to_value[target_var_name])
 
     def do_func_call(self, statement_node):
-        pass
+        func_call = statement_node.dict['name']
+        if func_call == "print":
+            output = ""
+            # loop through each arg in args list for print, evaluate their expressions, concat, and output.
+            for arg in statement_node.dict['args']:
+                # note, cant concat unles its str type
+                output += str(self.evaluate_expression(arg))
+            # THIS IS 1/2 OF ONLY REAL SELF.OUTPUT
+            self.output(output)
+        elif func_call == "inputi":
+            output = ""
+            for arg in statement_node.dict['args']:
+                output += str(self.evaluate_expression(arg))
+            # THIS IS 2/2 OF ONLY REAL SELF.OUTPUT
+            self.output(output)
+            return input()
+    
+
 
     def get_target_variable_name(self, statement_node):
         return statement_node.dict['name']
@@ -81,9 +98,6 @@ class Interpreter(InterpreterBase):
         return True if varname in self.variable_name_to_value.keys() else False
     def get_expression_node(self, statement_node):
         return statement_node.dict['expression']
-    
-
-    
     
 
     def is_value_node(self, expression_node):
@@ -101,6 +115,8 @@ class Interpreter(InterpreterBase):
             return self.get_value_of_variable(expression_node)
         elif self.is_binary_operator(expression_node):
             return self.evaluate_binary_operator(expression_node)
+        elif self.is_func_call(expression_node):
+            return self.do_func_call(expression_node)
 
     def get_value(self, expression_node):
         # Returns value assigned to key 'val'
@@ -108,7 +124,7 @@ class Interpreter(InterpreterBase):
     def get_value_of_variable(self, expression_node):
         # returns value under the variable name provided.
         # NEED TO CATCH: if var NOT ASSIGNED VALUE YET: ex: {var x; print(x);}
-            # NOTE this is how its done in barista, feels bad if we add concatonation in future, or something else. NOT FUTURE PROOF.
+        # NOTE this is how its done in barista, feels bad if we were to add concatonation in future, or something else. NOT FUTURE PROOF.
         val = self.variable_name_to_value[expression_node.dict['name']]
         if val is None:
             return 0
@@ -127,18 +143,12 @@ class Interpreter(InterpreterBase):
             return (self.evaluate_expression(expression_node.dict['op1']) - self.evaluate_expression(expression_node.dict['op2']))
 
 
-    # Several more functions remain
-
+    # No more functions remain... for now... :)
 
 program = """
             func main() {
              var x;
-             var y;
-             var z;
-             x = 5;
-             y = x + 1 -3;
-             z = (x + (1-3)) - y + 1;
-             print("The sum is: ", z);
+             x = inputi("Enter a value: ");
             }"""
 # z should be '1'
 interpreter = Interpreter()
