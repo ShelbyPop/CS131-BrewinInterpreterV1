@@ -93,13 +93,21 @@ class Interpreter(InterpreterBase):
             # too many inputi params
             if len(statement_node.dict['args']) > 1:
                 super().error(ErrorType.NAME_ERROR,f"No inputi() function found that takes > 1 parameter",)
-            arg = statement_node.dict['args'][0]
+            elif len(statement_node.dict['args']) == 1:
+                arg = statement_node.dict['args'][0]
+                # THIS IS 2/2 OF ONLY REAL SELF.OUTPUT
+                self.output(self.evaluate_expression(arg))
+                #output = str(self.evaluate_expression(arg))
 
-            # THIS IS 2/2 OF ONLY REAL SELF.OUTPUT
-            self.output(self.evaluate_expression(arg))
-            #output = str(self.evaluate_expression(arg))
-        
+            # if no args, dont output anything.
+
+
+            # everything below is fine.
             user_in = super().get_input()
+            # return user_in
+            
+            # DEPRECATED: (spec says not to worry)
+            # or... not. Including this literally made a testcase not fail... Might report?
             try:
                 user_in = int(user_in)
                 return user_in
@@ -173,18 +181,20 @@ class Interpreter(InterpreterBase):
             super().error(ErrorType.TYPE_ERROR, f"Incompatible types for {expression_node.elem_type} operation",)
 
         if expression_node.elem_type == "+":
-            return (self.evaluate_expression(expression_node.dict['op1']) + self.evaluate_expression(expression_node.dict['op2']))
+            return (op1 + op2)
         elif expression_node.elem_type == "-":
             # self.output(expression_node)
-            return (self.evaluate_expression(expression_node.dict['op1']) - self.evaluate_expression(expression_node.dict['op2']))
+            return (op1 - op2)
 
 
     # No more functions remain... for now... :)
 
-## FOR DEBUGGING
+# # FOR DEBUGGING
 # program = """
 #             func main() {
-#              print("foo", 5+6, "bar");
+#              var x;
+#              x = 5 + inputi("Enter a number to add to 5: ");
+#              print(x);
 #             }"""
 # # z should be '1'
 # interpreter = Interpreter()
